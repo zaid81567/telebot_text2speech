@@ -1,34 +1,27 @@
 import telebot
-import pyttsx3
+from gtts import gTTS
 import decouple
 
 TOKEY_KEY = decouple.config('TOKEN_KEY')
 bot = telebot.TeleBot(TOKEY_KEY)
 
+def getFileName(text):
+    words = text.split(' ')
+    return '_'.join(words[0:2])+".mp3"
+
 # function to convert text to speech
 def textToSpeech(text, output_file = "audio.mp3"):
-    engine = pyttsx3.init()
-    rate = engine.getProperty('rate')
-    engine.setProperty('rate', rate-70)
-    engine.save_to_file(text, output_file)
-    engine.runAndWait()
+    tts = gTTS(text=text, lang='en')
+    tts.save(output_file)
     return output_file
 
 @bot.message_handler(commands=['start','help'])
 def start(message):
     bot.send_message(message.chat.id, "Hii!! Send any text convert it to audio")
 
-# for future update -> male/female voice option
-# @bot.message_handler(commands=['vm'])
-# def HandleTextToSpeechMale(message):
-#     text = ' '.join((message.text).split(' ')[1:])
-#     output_file = textToSpeech(text)
-#     with open(output_file, 'rb') as audio:
-#         bot.send_audio(message.chat.id, audio)
-
 @bot.message_handler(func=lambda m: True)
 def handleTextToSpeech(message):
-    output_file = textToSpeech(message.text)
+    output_file = textToSpeech(message.text, getFileName(message.text))
     with open(output_file, 'rb') as audio:
         bot.send_audio(message.chat.id, audio)
 
